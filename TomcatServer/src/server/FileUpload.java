@@ -350,8 +350,9 @@ public class FileUpload extends HttpServlet {
 		System.out.println("Request RemoteUser: " + request.getRemoteUser());
 
 		System.out.println("================엔터티 본문================");
-		System.out.println("description: " + request.getParameter("description"));
-		System.out.println("keywords: " + request.getParameter("keywords"));
+		System.out.println("__sequence: " + request.getParameter("__sequence"));
+		System.out.println("uploadFilename: " + request.getParameter("uploadFilename"));
+		System.out.println("Content-Disposition: " + request.getParameter("Content-Disposition"));
 		System.out.println("===========================================");
 	}
 }

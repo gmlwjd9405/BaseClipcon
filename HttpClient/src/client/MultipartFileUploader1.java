@@ -16,7 +16,7 @@ import org.apache.http.HttpResponse;
 public class MultipartFileUploader1 {
 
 	public static void main(String[] args) {
-		System.out.println("MultipartFileUploader");
+		System.out.println("<MultipartFileUploader1>");
 		String charset = "UTF-8";
 		File uploadFile1 = new File("C:\\Users\\Administrator\\Desktop\\aaaa.jpeg");
 		File uploadFile2 = new File("C:\\Users\\Administrator\\Desktop\\bbbb.jpeg");

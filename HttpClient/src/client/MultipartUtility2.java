@@ -1,6 +1,10 @@
 package client;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,6 +17,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 /**
  * This utility class provides an abstraction layer for sending multipart HTTP
@@ -55,6 +61,19 @@ public class MultipartUtility2 {
 
 		outputStream = httpConn.getOutputStream();
 		writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
+	}
+
+	/**
+	 * Adds a header field to the request.
+	 *
+	 * @param name
+	 *            - name of the header field
+	 * @param value
+	 *            - value of the header field
+	 */
+	public void addHeaderField(String name, String value) {
+		writer.append(name + ": " + value).append(LINE_FEED);
+		writer.flush();
 	}
 
 	/**
@@ -107,17 +126,41 @@ public class MultipartUtility2 {
 		writer.append(LINE_FEED);
 		writer.flush();
 	}
-
+	
 	/**
-	 * Adds a header field to the request.
-	 *
-	 * @param name
-	 *            - name of the header field
-	 * @param value
-	 *            - value of the header field
+	 * Adds a upload file section to the request
+	 * 
+	 * @param fieldName
+	 *            name attribute in <input type="file" name="..." />
+	 * @param uploadFile
+	 *            a File to be uploaded
+	 * @throws IOException
 	 */
-	public void addHeaderField(String name, String value) {
-		writer.append(name + ": " + value).append(LINE_FEED);
+	public void addImagePart(String fieldName, Image image) throws IOException {
+		String imageName = "capturedImage";
+		
+		writer.append("--" + boundary).append(LINE_FEED);
+		writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + imageName + "\"")
+				.append(LINE_FEED);
+		writer.append("Content-Type: image/jpeg").append(LINE_FEED);
+		writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
+		writer.append(LINE_FEED);
+		writer.flush();
+
+		//image data array Àü¼Û
+		BufferedImage originalImage = new BufferedImage
+		        (image.getWidth(null),image.getHeight(null),BufferedImage.TYPE_INT_RGB);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(originalImage, "jpg", baos);
+		baos.flush();
+		byte[] imageInByte = baos.toByteArray();
+		baos.close();
+
+		outputStream.write(imageInByte);
+		outputStream.flush();
+
+		writer.append(LINE_FEED);
 		writer.flush();
 	}
 

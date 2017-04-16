@@ -1,11 +1,17 @@
 package server;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
 
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.annotation.MultipartConfig;
@@ -14,11 +20,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
-@MultipartConfig(location = "C:\\Users\\Administrator\\Desktop\\heeuploads", maxFileSize = 1024 * 1024 * 10, fileSizeThreshold = 1024
-		* 1024, maxRequestSize = 1024 * 1024 * 20)
-
+/* maxFileSize: 최대 파일 크기(100MB)
+ * fileSizeThreshold: 1MB 이하의 파일은 메모리에서 바로 사용
+ * maxRequestSize:  */
+@MultipartConfig(location = "C:\\Users\\Administrator\\Desktop\\heeuploads", maxFileSize = 1024 * 1024
+		* 100, fileSizeThreshold = 1024 * 1024, maxRequestSize = 1024 * 1024 * 100)
 @WebServlet("/UploadServlet")
 public class UploadServlet extends HttpServlet {
+
+	// // 업로드 파일을 저장할 위치
+	// private final String UPLOAD_DIRECTORY =
+	// "C:\\Users\\Administrator\\Desktop\\heeuploads";
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -29,48 +41,63 @@ public class UploadServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		// 요청받은 http request 내용 출력
 		requestMsgLog(request);
-		System.out.println(request.getParameter("name")); // This doesn't work
-		
-		String fileName = "hello.zip";
+
+		// path 제외, 확장자 포함
+		String fileName = request.getParameter("uploadFilename");
+		System.out.println("uploadFilename: " + fileName);
+		System.out.println();
+
 		Part filePart = null;
-		
+
+		// 여러 file들을 가져옴
 		for (Part part : request.getParts()) {
-			System.out.println(part);
+			System.out.println("<headerName: headerValue>");
+
+			/*
+			 * To find out file name, parse header value of content-disposition
+			 * e.g. form-data; name="file"; filename=""
+			 */
 			for (String headerName : part.getHeaderNames()) {
-				System.out.println(headerName);
-				System.out.println("-");
-				System.out.println(part.getHeader(headerName));
-				// To find out file name, parse header value of
-				// content-disposition
-				// e.g. form-data; name="file"; filename=""
+				System.out.println(headerName + ": " + part.getHeader(headerName));
 			}
 			// Get a normal parameter
-			if (part.getName().equals("name")) {
+			if (part.getName().equals("stringData")) {
+				System.out.println("....IN......(stringData)");
+
 				String paramValue = getStringFromStream(part.getInputStream());
-				System.out.println("1111111111111");
-				System.out.println(paramValue);
-				fileName = paramValue;
+				// fileName = paramValue;
+				System.out.println("paramValue: " + paramValue);
 			}
+
+			if (part.getName().equals("imageData")) {
+				System.out.println("....IN.......(imageData)");
+
+				Image imageData = getImageDataStream(part.getInputStream());
+				System.out.println(imageData.toString());
+			}
+
 			if (part.getName().equals("uploadFilename")) {
+				System.out.println("....IN.......(uploadFilename)");
+
 				filePart = part; // Absolute path doesn't work.
-				System.out.println("2222222222222");
-				System.out.println(part.toString());
-				System.out.println(part.getName());
+				filePart.write(fileName);
 			}
+			System.out.println();
 		}
-		filePart.write(fileName);
-		//response.sendRedirect("index.jsp");
+
+		// response.sendRedirect("index.jsp");
 	}
 
 	public String getStringFromStream(InputStream stream) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-		StringBuilder sb = new StringBuilder();
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+		StringBuilder stringBuilder = new StringBuilder();
 		String line = null;
 
 		try {
-			while ((line = br.readLine()) != null) {
-				sb.append(line + "\n");
+			while ((line = bufferedReader.readLine()) != null) {
+				stringBuilder.append(line + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -81,7 +108,30 @@ public class UploadServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
-		return sb.toString();
+		return stringBuilder.toString();
+	}
+
+	public Image getImageDataStream(InputStream stream) throws IOException {
+		byte[] imageInByte;
+
+		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
+			byte[] buffer = new byte[0xFFFF];
+
+			for (int len; (len = stream.read(buffer)) != -1;)
+				byteArrayOutputStream.write(buffer, 0, len);
+
+			byteArrayOutputStream.flush();
+
+			imageInByte = byteArrayOutputStream.toByteArray();
+		}
+
+		// convert byte array back to BufferedImage
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageInByte);
+		BufferedImage bImageFromConvert = ImageIO.read(byteArrayInputStream);
+
+		Image ImageData = (Image) bImageFromConvert;
+
+		return ImageData;
 	}
 
 	/** request msg 출력 */
@@ -118,5 +168,7 @@ public class UploadServlet extends HttpServlet {
 		System.out.println("uploadFilename: " + request.getParameter("uploadFilename"));
 		System.out.println("Content-Disposition: " + request.getParameter("Content-Disposition"));
 		System.out.println("===========================================");
+		System.out.println();
+		System.out.println();
 	}
 }

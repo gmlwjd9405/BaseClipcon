@@ -27,9 +27,9 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 /**
  * Servlet implementation class FileUpload
  */
-@WebServlet("/FileUpload")
+@WebServlet("/UploadServletUsingFileUpload")
 @MultipartConfig
-public class FileUpload extends HttpServlet {
+public class UploadServletUsingFileUpload extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	// 업로드 파일을 저장할 위치
 	private final String UPLOAD_DIRECTORY = "C:\\Users\\Administrator\\Desktop\\heeuploads";
@@ -37,7 +37,7 @@ public class FileUpload extends HttpServlet {
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
-	public FileUpload() {
+	public UploadServletUsingFileUpload() {
 		super();
 	}
 
@@ -57,102 +57,11 @@ public class FileUpload extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// doGet(request, response);
+		// response.setContentType("text/html");
 
-		/* 1 */
-		//response.setContentType("text/html");
-		PrintWriter out = response.getWriter();
-
-		// // Retrieves <input type="file" name="file">
-		// Part filePart = request.getPart("file");
-		// System.out.println("filePart: " + filePart.toString());
+		/* 1. */
+		// requestMsgLog(request);
 		//
-		// // MSIE fix.
-		// String submittedFileName = filePart.getName();
-		// System.out.println("submittedFileName: " + submittedFileName);
-		//// String fileName =
-		// Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-		//
-		// InputStream fileContent = filePart.getInputStream();
-		// ... (do your job here)
-
-		/* 2 */
-		// Check that we have a file upload request
-		// boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-		// HashMap dataMap = new HashMap();
-		// File tempFile = null;
-		//
-		// if (!isMultipart) {
-		// throw new Exception("Form type is not multipart");
-		//
-		// // Create a factory for disk=based file items
-		// DiskFileItemFactory factory = new DiskFileItemFactory();
-		//
-		// // Set factory constraints
-		// factory.setRepository(TempDirectory);
-		//
-		// // Create a new file upload handler
-		// ServletFileUpload upload = new ServletFileUpload(factory);
-		//
-		// // Parse the request
-		// List<FileItem> items = upload.parseRequest(request);
-		//
-		// // Process the uploaded items
-		// for (FileItem item : items) {
-		// String fieldName = item.getFieldName();
-		//
-		// if (item.isFormField()) { // processFormField
-		// dataMap.put(fieldName, item.getString());
-		// } else {
-		// if (item.getSize() > 0)
-		// tempFile = item;
-		// }
-		// }
-		//
-		// // Create file object for upload
-		// File uploadFile = new File(savePath + "/" + saveFileName);
-		//
-		// // Save file object
-		// if (tempFile.getSize() > 0) {
-		// tempFile.write(uploadFile);
-		// tempFile.delete();
-		// }
-		// }
-
-		/* 3 */
-		// process only if its multipart content
-		// if (ServletFileUpload.isMultipartContent(request)) {
-		// try {
-		// List<FileItem> multiparts = new ServletFileUpload(new
-		// DiskFileItemFactory()).parseRequest(request);
-		// System.out.println("11111111111111111111111111111");
-		//
-		// for (FileItem item : multiparts) {
-		// System.out.println("22222222222222222222222222");
-		// if (!item.isFormField()) {
-		// String name = new File(item.getName()).getName();
-		// System.out.println("Filename: " + name);
-		// item.write(new File(UPLOAD_DIRECTORY + File.separator + name));
-		// }
-		// }
-		// System.out.println("333333333333333333333333333");
-		//
-		// // File uploaded successfully
-		// request.setAttribute("message", "File Uploaded Successfully");
-		// System.out.println("444444444444444444444444444444");
-		// } catch (Exception ex) {
-		// request.setAttribute("message", "File Upload Failed due to " + ex);
-		// }
-		//
-		// } else {
-		// request.setAttribute("message", "Sorry this Servlet only handles file
-		// upload request");
-		// }
-		//
-		// request.getRequestDispatcher("/result.jsp").forward(request,
-		// response);
-
-		/* 4. */
-
 		// boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 		// System.out.println("isMultipart: " + isMultipart);
 		//
@@ -160,19 +69,19 @@ public class FileUpload extends HttpServlet {
 		// FileItemFactory factory = new DiskFileItemFactory();
 		// ServletFileUpload upload = new ServletFileUpload(factory);
 		//
+		// //업로드할 때의 기준값을 설정
+		// factory.setSizeThreshold(1024);
+		// upload.setSizeMax(1024);
+		// //upload.setHeaderEncoding(encoding);
+		//
 		// try {
 		// List items = upload.parseRequest(request);
 		// System.out.println("items size: " + items.size());
-		// Iterator iterator = items.iterator();
-		// System.out.println("들어옴1");
-		// System.out.println(iterator.toString());
-		// System.out.println(iterator.hasNext());
 		//
-		// System.out.println("들어옴2");
+		// Iterator iterator = items.iterator();
 		// FileItem item = (FileItem) iterator.next();
-		// System.out.println("들어옴3");
+		//
 		// if (!item.isFormField()) {
-		// System.out.println("들어옴4");
 		// String fileName = item.getName();
 		//
 		// File path = new File(UPLOAD_DIRECTORY);
@@ -183,72 +92,14 @@ public class FileUpload extends HttpServlet {
 		// File uploadedFile = new File(path + "\\" + fileName);
 		// item.write(uploadedFile);
 		// }
-		//
-		//// while (iterator.hasNext()) {
-		//// System.out.println("들어옴4");
-		//// FileItem item = (FileItem) iterator.next();
-		//// System.out.println("들어옴2");
-		//// if (!item.isFormField()) {
-		//// System.out.println("들어옴3");
-		//// String fileName = item.getName();
-		////
-		//// File path = new File(UPLOAD_DIRECTORY);
-		//// if (!path.exists()) {
-		//// boolean status = path.mkdirs();
-		//// }
-		////
-		//// File uploadedFile = new File(path + "\\" + fileName);
-		//// item.write(uploadedFile);
-		//// }
-		//// }
-		// System.out.println("나옴");
 		// } catch (Exception e) {
 		// }
 		// }
 
-		/* 5. */
-		// //ServletFileUpload 오브젝트를 생성
-		// DiskFileItemFactory factory = new DiskFileItemFactory();
-		// ServletFileUpload upload = new ServletFileUpload(factory);
-		//
-		// //업로드할 때의 기준값을 설정
-		// factory.setSizeThreshold(1024);
-		// upload.setSizeMax(=1);
-		// //upload.setHeaderEncoding(encoding);
-		//
-		// try{
-		// System.out.println("들어옴1");
-		// //파일데이터(FileItem 객체)를 취득하고, List 오브젝트로써 리턴
-		// List list = upload.parseRequest(request);
-		// System.out.println("list size: " + list.size());
-		//
-		// //파일데이터(FileItem 객체)를 순서대로 처리
-		// Iterator iterator = list.iterator();
-		// while(iterator.hasNext()){
-		// FileItem fileitem = (FileItem)iterator.next();
-		//
-		// //파일데이터의 경우, if 내부로 이동
-		// if(!(fileitem.isFormField())){
-		// //파일데이터의 파일명을 취득
-		// String fileName = fileitem.getName();
-		// if((fileitem != null) && (!fileitem.equals(""))){
-		// //PATH명을 제외한 파일명만을 취득
-		// fileName = (new File(fileName)).getName();
-		// //파일데이터를 지정된 파일에 쓴다.
-		// fileitem.write(new File(UPLOAD_DIRECTORY + "/" + fileName));
-		// }
-		// }
-		// }
-		// }catch (FileUploadException e) {
-		// e.printStackTrace();
-		// }catch (Exception e) {
-		// e.printStackTrace();
-		// }
-
-		/* 6. */
-
+		/* 2. */
 		requestMsgLog(request);
 
+		PrintWriter out = response.getWriter();
 		// multipart로 전송되었는가를 체크
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 
@@ -328,7 +179,7 @@ public class FileUpload extends HttpServlet {
 		System.out.println("Request Method: " + request.getMethod());
 		System.out.println("Request RequestURI: " + request.getRequestURI());
 		System.out.println("Request Protocol: " + request.getProtocol());
-		
+
 		/* server가 받은 request 헤더 정보 */
 		/* server가 받은 기본적인 request header msg 정보 */
 		System.out.println("==================헤더====================");

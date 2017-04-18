@@ -10,7 +10,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 
 public class testUpload {
-	static UploadData uploader = new UploadData();
+	public static UploadData uploader = new UploadData("gmlwjd9405@naver.com", "doyyyy");
 
 	public static void main(String[] args) {
 		// 데이터의 종류
@@ -40,17 +40,12 @@ public class testUpload {
 
 		// Multiple File
 		case 2:
-			ArrayList<String> localDirList = new ArrayList<String>();
-			localDirList.add("C:\\Users\\Administrator\\Desktop\\hello\\");
-			localDirList.add("C:\\Users\\Administrator\\Desktop\\");
-			localDirList.add("C:\\Users\\Administrator\\Desktop\\hello\\qwerqer\\");
+			ArrayList<String> fileFullPathList = new ArrayList<String>();
+			fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\hello\\ccccc.txt");
+			fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\taeyeon.mp3");
+			fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\hello\\qwerqer\\bbbb.jpeg");
 
-			ArrayList<String> fileNameList = new ArrayList<String>();
-			fileNameList.add("ccccc.txt");
-			fileNameList.add("taeyeon.mp3");
-			fileNameList.add("bbbb.jpeg");
-
-			uploader.uploadMultipartData(localDirList, fileNameList);
+			uploader.uploadMultipartData(fileFullPathList);
 			break;
 
 		// Folder

@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -28,9 +27,6 @@ import javax.swing.ImageIcon;
 /* maxFileSize: 최대 파일 크기(100MB)
  * fileSizeThreshold: 1MB 이하의 파일은 메모리에서 바로 사용
  * maxRequestSize:  */
-
-//@MultipartConfig(location = "C:\\Users\\Administrator\\Desktop\\heeuploads", maxFileSize = 1024 * 1024
-//		* 100, fileSizeThreshold = 1024 * 1024, maxRequestSize = 1024 * 1024 * 100)
 @MultipartConfig(maxFileSize = 1024 * 1024 * 100, fileSizeThreshold = 1024 * 1024, maxRequestSize = 1024 * 1024 * 100)
 @WebServlet("/UploadServlet")
 public class UploadServlet extends HttpServlet {
@@ -62,13 +58,14 @@ public class UploadServlet extends HttpServlet {
 		System.out.println("userEmail: " + userEmail + ", groupPK: " + groupPK + ", uploadTime: " + uploadTime);
 		System.out.println();
 
-		// Part filePart = null;
-
 		// 여러 file들을 가져옴
 		for (Part part : request.getParts()) {
 
 			String partName = part.getName();
 			Contents uploadContents = new Contents();
+			uploadContents.setContentsSize(part.getSize());
+			uploadContents.setUploadUserName(userEmail);
+			uploadContents.setUploadTime(uploadTime);
 
 			/*
 			 * To find out file name, parse header value of content-disposition
@@ -86,8 +83,8 @@ public class UploadServlet extends HttpServlet {
 				String paramValue = getStringFromStream(part.getInputStream());
 				System.out.println("paramValue: " + paramValue);
 
-				setContentsInfo(uploadContents, Contents.TYPE_STRING, part.getSize(), paramValue);
-				saveContentsToHidtory(uploadContents);
+				setContentsInfo(uploadContents, Contents.TYPE_STRING, paramValue);
+				saveContentsToHistory(uploadContents);
 
 				break;
 			case "imageData":
@@ -95,19 +92,17 @@ public class UploadServlet extends HttpServlet {
 						uploadContents.getContentsPKName());
 				System.out.println(imageData.toString());
 
-				setContentsInfo(uploadContents, Contents.TYPE_IMAGE, part.getSize(), null);
-				saveContentsToHidtory(uploadContents);
+				setContentsInfo(uploadContents, Contents.TYPE_IMAGE, null);
+				saveContentsToHistory(uploadContents);
 
 				break;
 			case "multipartFileData":
 				String fileName = getFilenameInHeader(part.getHeader("content-disposition"));
 				System.out.println("fileName: " + fileName);
 
-				setContentsInfo(uploadContents, Contents.TYPE_FILE, part.getSize(), fileName);
-				saveContentsToHidtory(uploadContents);
+				setContentsInfo(uploadContents, Contents.TYPE_FILE, fileName);
+				saveContentsToHistory(uploadContents);
 
-				// filePart = part; // Absolute path doesn't work.
-				// filePart.write(fileName);
 				/* groupPK 폴더에 실제 File(파일명: 고유키) 저장 */
 				getFileDatStream(part.getInputStream(), groupPK, uploadContents.getContentsPKName());
 				break;
@@ -116,6 +111,7 @@ public class UploadServlet extends HttpServlet {
 			}
 			System.out.println();
 		}
+
 		responseMsgLog(response);
 	}
 
@@ -228,17 +224,13 @@ public class UploadServlet extends HttpServlet {
 	}
 
 	/** Contents에 대한 정보 Setting */
-	private void setContentsInfo(Contents uploadContents, String contentsType, long contentsSize,
-			String contentsValue) {
+	private void setContentsInfo(Contents uploadContents, String contentsType, String contentsValue) {
 		uploadContents.setContentsType(contentsType);
-		uploadContents.setContentsSize(contentsSize);
-		uploadContents.setUploadUserName(userEmail);
-		uploadContents.setUploadTime(uploadTime);
 		uploadContents.setContentsValue(contentsValue);
 	}
 
 	/** 해당 그룹 history에 contents 저장 */
-	private void saveContentsToHidtory(Contents uploadContents) {
+	private void saveContentsToHistory(Contents uploadContents) {
 		// 해당 그룹의 history를 가져온다.
 
 		// content를 저장한다.

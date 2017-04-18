@@ -1,5 +1,6 @@
 package server;
 
+import java.awt.Image;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +25,9 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/DownloadServlet")
 public class DownloadServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	
+
+	private static final String LINE_FEED = "\r\n";
+
 	private String userEmail = null;
 	private String groupPK = null;
 	private String downloadData = null;
@@ -42,81 +45,60 @@ public class DownloadServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
-		//get Request Data
-		downloadData = request.getParameter("downloadData");
-		
-		//서버
-		
-		//Copy it to response's OutputStream
-		
-		//Set response Headers
-		response.setContentType("multipart/mixed");
-		response.setHeader("Content-Disposition", "attachment; filename=" );
-		
-		
-		
-		//
-		// // Set the response type and specify the boundary string
-		// response.setContentType("multipart/x-mixed-replace;boundary=END");
-		//
-		// // Set the content type based on the file type you need to download
-		// String contentType = "Content-type: text/rtf";
-		//
-		// // List of files to be downloaded
-		// List files = new ArrayList();
-		// files.add(new File("C:/first.txt"));
-		// files.add(new File("C:/second.txt"));
-		// files.add(new File("C:/third.txt"));
-		//
-		// ServletOutputStream out = response.getOutputStream();
-		//
-		// // Print the boundary string
-		// out.println();
-		// out.println("--END");
-		//
-		// for (File file : files) {
-		//
-		// // Get the file
-		// FileInputStream fis = null;
-		// try {
-		// fis = new FileInputStream(file);
-		//
-		// } catch (FileNotFoundException fnfe) {
-		// // If the file does not exists, continue with the next file
-		// System.out.println("Couldfind file " + file.getAbsolutePath());
-		// continue;
-		// }
-		//
-		// BufferedInputStream fif = new BufferedInputStream(fis);
-		//
-		// // Print the content type
-		// out.println(contentType);
-		// out.println("Content-Disposition: attachment; filename=" +
-		// file.getName());
-		// out.println();
-		//
-		// System.out.println("Sending " + file.getName());
-		//
-		// // Write the contents of the file
-		// int data = 0;
-		// while ((data = fif.read()) != -1) {
-		// out.write(data);
-		// }
-		// fif.close();
-		//
-		// // Print the boundary string
-		// out.println();
-		// out.println("--END");
-		// out.flush();
-		// System.out.println("Finisheding file " + file.getName());
-		// }
-		//
-		// // Print the ending boundary string
-		// out.println("--END--");
-		// out.flush();
-		// out.close();
 
+		// get Request Data
+		userEmail = request.getParameter("userEmail");
+		groupPK = request.getParameter("groupPK");
+		downloadData = request.getParameter("downloadData");
+
+		// 서버에서 groupPK로 해당 history에서 downloadDataPK인 Contents를 찾는다.
+		String contentsType = "";
+
+		// 해당 downloadDataPK의 Contents타입을 client에 알림
+		// response.setHeader("contentsType", "");
+		
+		
+		
+		
+
+		// 해당 downloadDataPK의 Contents타입에 따라 다르게 처리(Set response Headers)
+		switch (contentsType) {
+		case "STRING":
+			String stringData = "";
+
+			response.setHeader("Content-Disposition", "form-data; name=stringData" + "\"" + LINE_FEED);
+			response.setContentType("text/plain; charset=UTF-8");
+
+			sendStringData(stringData);
+
+			break;
+		case "IMAGE":
+			String imageFileName = "";
+			// dir에 있는 image file을 가져온다. (ByteArrayStream)
+
+			response.setContentType("image/jpeg");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + imageFileName);
+			response.setHeader("Content-Transfer-Encoding", "binary" + "\"" + LINE_FEED);
+
+			sendCapturedImageData(imageFileName);
+
+			break;
+		case "FILE":
+			String fileName = "";
+			// dir에 있는 file을 가져온다. (FileStream)
+
+			// response.setContentType("multipart/mixed");
+			response.setContentType("application/octet-stream");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName);
+			response.setHeader("Content-Transfer-Encoding", "binary" + "\"" + LINE_FEED);
+
+			// file 전송
+			sendFileData(fileName);
+
+			break;
+		default:
+			break;
+		}
 	}
 
 	/**
@@ -127,6 +109,132 @@ public class DownloadServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// doGet(request, response);
+	}
+
+	/** String Data 전송 */
+	public void sendStringData(String stringData) {
+		// try {
+		// "Content-Type: text/plain; charset=" + charset
+		// MultipartUtility multipart = new MultipartUtility(SERVER_URL +
+		// SERVER_SERVLET, charset);
+		// setCommonParameter(multipart);
+		//
+		// multipart.addFormField("stringData", stringData);
+		//
+		// List<String> response = multipart.finish();
+		// System.out.println("SERVER REPLIED");
+		// // responseMsgLog();
+		//
+		// for (String line : response) {
+		// System.out.println(line);
+		// }
+		// } catch (IOException ex) {
+		// System.err.println(ex);
+		// }
+	}
+
+	/** Captured Image Data를 전송 */
+	public void sendCapturedImageData(String imageFileName) {
+		// try {
+		// MultipartUtility multipart = new MultipartUtility(SERVER_URL +
+		// SERVER_SERVLET, charset);
+		// setCommonParameter(multipart);
+		//
+		// System.out.println("<uploadCapturedImageData> getWidth: " +
+		// capturedImageData.getWidth(null));
+		// System.out.println("<uploadCapturedImageData> getHeight: " +
+		// capturedImageData.getHeight(null));
+		// multipart.addImagePart("imageData", capturedImageData);
+		//
+		// List<String> response = multipart.finish();
+		// System.out.println("SERVER REPLIED");
+		// // responseMsgLog();
+		//
+		// for (String line : response) {
+		// System.out.println(line);
+		// }
+		//
+		// } catch (IOException ex) {
+		// System.err.println(ex);
+		// }
+	}
+
+	/** File Data를 전송 */
+	public void sendFileData(String fileName) {
+		//
+		// try {
+		// MultipartUtility multipart = new MultipartUtility(SERVER_URL +
+		// SERVER_SERVLET, charset);
+		// setCommonParameter(multipart);
+		//
+		// // Iterator 통한 전체 조회
+		// Iterator iterator = fileFullPathList.iterator();
+		//
+		// // 여러 파일을 순서대로 처리
+		// while (iterator.hasNext()) {
+		// String fileFullPath = (String) iterator.next();
+		//
+		// System.out.println("fileFullPathList: " + fileFullPath);
+		// System.out.println();
+		//
+		// // 업로드할 파일 생성
+		// File uploadFile = new File(fileFullPath);
+		//
+		// /* uploadFilename is the name of the sequence input variable in the
+		// called project the value is the name that will be given to the file
+		// */
+		// multipart.addFilePart("multipartFileData", uploadFile);
+		// }
+		//
+		// List<String> response = multipart.finish();
+		// System.out.println("SERVER REPLIED");
+		// // responseMsgLog();
+		//
+		// for (String line : response) {
+		// System.out.println(line);
+		// }
+		// } catch (IOException ex) {
+		// System.err.println(ex);
+		// }
+	}
+
+	/** 여러 File Data를 전송 */
+	public void sendMultipartData(ArrayList<String> fileFullPathList) {
+		//
+		// try {
+		// MultipartUtility multipart = new MultipartUtility(SERVER_URL +
+		// SERVER_SERVLET, charset);
+		// setCommonParameter(multipart);
+		//
+		// // Iterator 통한 전체 조회
+		// Iterator iterator = fileFullPathList.iterator();
+		//
+		// // 여러 파일을 순서대로 처리
+		// while (iterator.hasNext()) {
+		// String fileFullPath = (String) iterator.next();
+		//
+		// System.out.println("fileFullPathList: " + fileFullPath);
+		// System.out.println();
+		//
+		// // 업로드할 파일 생성
+		// File uploadFile = new File(fileFullPath);
+		//
+		// /* uploadFilename is the name of the sequence input variable in the
+		// called project the value is the name that will be given to the file
+		// */
+		// multipart.addFilePart("multipartFileData", uploadFile);
+		// }
+		//
+		// List<String> response = multipart.finish();
+		// System.out.println("SERVER REPLIED");
+		// // responseMsgLog();
+		//
+		// for (String line : response) {
+		// System.out.println(line);
+		// }
+		// } catch (IOException ex) {
+		// System.err.println(ex);
+		// }
 	}
 
 	/** request Msg 출력 */

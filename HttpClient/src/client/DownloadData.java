@@ -61,6 +61,8 @@ public class DownloadData {
 
 		// GET방식으로 보낼 parameter
 		String getParameters = "userEmail=" + userEmail + "&" + "groupPK=" + groupPK + "&" + "downloadData=" + downloadDataPKName;
+		// 다운로드받을 데이터의 Type
+		String contentsType = requestContents.getContentsType();
 
 		try {
 			URL url = new URL(SERVER_URL + SERVER_SERVLET + "?" + getParameters);
@@ -89,7 +91,7 @@ public class DownloadData {
 			}
 
 			/* response에서 contentsType 받아와야 함 */
-			String contentsType = httpConn.getHeaderField("contentsType");
+//			String contentsType = httpConn.getHeaderField("contentsType");
 
 			switch (contentsType) {
 			case "STRING":

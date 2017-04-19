@@ -55,17 +55,15 @@ public class UploadServlet extends HttpServlet {
 		userEmail = request.getParameter("userEmail");
 		groupPK = request.getParameter("groupPK");
 		uploadTime = request.getParameter("uploadTime");
-		System.out.println("userEmail: " + userEmail + ", groupPK: " + groupPK + ", uploadTime: " + uploadTime);
+		System.out.println(
+				"<Parameter> userEmail: " + userEmail + ", groupPK: " + groupPK + ", uploadTime: " + uploadTime);
 		System.out.println();
 
 		// 여러 file들을 가져옴
 		for (Part part : request.getParts()) {
 
 			String partName = part.getName();
-			Contents uploadContents = new Contents();
-			uploadContents.setContentsSize(part.getSize());
-			uploadContents.setUploadUserName(userEmail);
-			uploadContents.setUploadTime(uploadTime);
+			Contents uploadContents;
 
 			/*
 			 * To find out file name, parse header value of content-disposition
@@ -80,27 +78,29 @@ public class UploadServlet extends HttpServlet {
 
 			switch (partName) {
 			case "stringData":
+				uploadContents = new Contents();
 				String paramValue = getStringFromStream(part.getInputStream());
-				System.out.println("paramValue: " + paramValue);
+				System.out.println("stringData: " + paramValue);
 
-				setContentsInfo(uploadContents, Contents.TYPE_STRING, paramValue);
-				saveContentsToHistory(uploadContents);
+				setContentsInfo(uploadContents, part.getSize(), Contents.TYPE_STRING, paramValue);
 
 				break;
 			case "imageData":
+				uploadContents = new Contents();
 				Image imageData = getImageDataStream(part.getInputStream(), groupPK,
 						uploadContents.getContentsPKName());
-				System.out.println(imageData.toString());
+				System.out.println("imageData: " + imageData.toString());
 
-				setContentsInfo(uploadContents, Contents.TYPE_IMAGE, null);
+				setContentsInfo(uploadContents, part.getSize(), Contents.TYPE_IMAGE, null);
 				saveContentsToHistory(uploadContents);
 
 				break;
 			case "multipartFileData":
+				uploadContents = new Contents();
 				String fileName = getFilenameInHeader(part.getHeader("content-disposition"));
 				System.out.println("fileName: " + fileName);
 
-				setContentsInfo(uploadContents, Contents.TYPE_FILE, fileName);
+				setContentsInfo(uploadContents, part.getSize(), Contents.TYPE_FILE, fileName);
 				saveContentsToHistory(uploadContents);
 
 				/* groupPK 폴더에 실제 File(파일명: 고유키) 저장 */
@@ -141,6 +141,8 @@ public class UploadServlet extends HttpServlet {
 	public Image getImageDataStream(InputStream stream, String groupPK, String imagefileName) throws IOException {
 		byte[] imageInByte;
 		String saveFilePath = RECEIVE_LOCATION + groupPK; // 사용자가 속한 그룹의 폴더에 저장
+		
+		createFileReceiveFolder(saveFilePath); // 그룹 폴더 존재 확인
 
 		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
 			byte[] buffer = new byte[0xFFFF]; // 65536
@@ -224,9 +226,21 @@ public class UploadServlet extends HttpServlet {
 	}
 
 	/** Contents에 대한 정보 Setting */
-	private void setContentsInfo(Contents uploadContents, String contentsType, String contentsValue) {
+	private void setContentsInfo(Contents uploadContents, long contentsSize, String contentsType,
+			String contentsValue) {
+		System.out.println("<contentsPKName>: " + uploadContents.contentsPKName);
+		uploadContents.setContentsSize(contentsSize);
+		uploadContents.setUploadUserName(userEmail);
+		uploadContents.setUploadTime(uploadTime);
+		System.out.println("<CommonSetting> ContentsSize: " + uploadContents.getContentsSize() + ", UploadUserName: "
+				+ uploadContents.getUploadUserName() + ", UploadTime: " + uploadContents.getUploadTime());
+
 		uploadContents.setContentsType(contentsType);
 		uploadContents.setContentsValue(contentsValue);
+		System.out.println("<UniqueSetting> contentsType: " + uploadContents.getContentsType() + ", contentsValue: "
+				+ uploadContents.getContentsValue());
+
+		// saveContentsToHistory(uploadContents);
 	}
 
 	/** 해당 그룹 history에 contents 저장 */

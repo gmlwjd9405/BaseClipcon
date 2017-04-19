@@ -1,5 +1,6 @@
 package model;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import lombok.Getter;
@@ -11,7 +12,7 @@ import lombok.ToString;
 @ToString
 public class History {
 	private String groupPK;
-	private Map<String, Contents> contentsMap;
+	private Map<String, Contents> contentsMap =  new LinkedHashMap<>(); //순서 있는 Map
 
 	public History(String groupPK) {
 		this.groupPK = groupPK;

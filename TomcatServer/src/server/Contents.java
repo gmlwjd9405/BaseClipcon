@@ -28,5 +28,6 @@ public class Contents {
 	/** 생성 시 고유키값을 할당한다. */
 	public Contents() {
 		this.contentsPKName = Integer.toString(++contentsPKValue);
+		System.out.println("Contents 생성자 호출, ++contentsPKValue");
 	}
 }

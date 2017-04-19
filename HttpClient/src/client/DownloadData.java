@@ -41,10 +41,10 @@ public class DownloadData {
 
 	private String userEmail = null;
 	private String groupPK = null;
-	private String downloadDataPKName; // 다운로드할 Data의 고유키
+	private String downloadDataPK; // 다운로드할 Data의 고유키
 	private Contents requestContents; // 다운로드할 Data 정보
 
-	private History history; // 내가 속한 History
+	private History myhistory; // 내가 속한 History
 
 	/** 생성자 userEmail과 groupPK를 설정한다. */
 	public DownloadData(String userEmail, String groupPK) {
@@ -54,13 +54,15 @@ public class DownloadData {
 
 	/** 다운로드하기 원하는 Data를 request 
 	 * 복수 선택은 File Data의 경우만 가능(추후 개선) */
-	public void requestDataDownload(String downloadDataPK) throws MalformedURLException {
+	public void requestDataDownload(String downloadDataPK, History myhistory) throws MalformedURLException {
 		createFileReceiveFolder(DOWNLOAD_LOCATION);
 
-		requestContents = history.getContentsByPK(downloadDataPK); // 내가 속한 history에서 고유키에 해당하는 Contents 가져오기
+		this.downloadDataPK = downloadDataPK;
+		this.myhistory = myhistory;
+		requestContents = myhistory.getContentsByPK(downloadDataPK); // 내가 속한 history에서 고유키에 해당하는 Contents 가져오기
 
 		// GET방식으로 보낼 parameter
-		String getParameters = "userEmail=" + userEmail + "&" + "groupPK=" + groupPK + "&" + "downloadData=" + downloadDataPKName;
+		String getParameters = "userEmail=" + userEmail + "&" + "groupPK=" + groupPK + "&" + "downloadDataPK=" + downloadDataPK;
 		// 다운로드받을 데이터의 Type
 		String contentsType = requestContents.getContentsType();
 
@@ -79,45 +81,46 @@ public class DownloadData {
 			List<String> response = new ArrayList<String>(); // Server의 응답내용
 
 			if (status == HttpURLConnection.HTTP_OK) {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-					response.add(line);
+				// BufferedReader reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+				// String line = null;
+				// while ((line = reader.readLine()) != null) {
+				// response.add(line);
+				// }
+				// reader.close();
+				// httpConn.disconnect();
+
+				switch (contentsType) {
+				case "STRING":
+					// response body에 넣은 String 객체를 받아온다.
+					String stringData = downloadStringData(httpConn.getInputStream());
+					System.out.println("stringData 결과: " + stringData);
+
+					break;
+				case "IMAGE":
+					// response body에 넣은 Image 객체를 받아온다.
+					Image imageData = downloadCapturedImageData(httpConn.getInputStream());
+					System.out.println("ImageData 결과: " + imageData.toString());
+
+					break;
+				case "FILE":
+					String fileOriginName = requestContents.getFileOriginName();
+					System.out.println("fileOriginName 결과: " + fileOriginName);
+
+					/* Clipcon 폴더에 실제 File(파일명: 원본 파일명) 저장 */
+					downloadMultipartData(httpConn.getInputStream(), fileOriginName);
+					break;
+
+				default:
+					System.out.println("어떤 형식에도 속하지 않음.");
 				}
-				reader.close();
-				httpConn.disconnect();
+				System.out.println();
+
 			} else {
 				throw new IOException("Server returned non-OK status: " + status);
 			}
 
 			/* response에서 contentsType 받아와야 함 */
-//			String contentsType = httpConn.getHeaderField("contentsType");
-
-			switch (contentsType) {
-			case "STRING":
-				// response body에 넣은 String 객체를 받아온다.
-				String stringData = downloadStringData(httpConn.getInputStream());
-				System.out.println("stringData 결과: " + stringData);
-
-				break;
-			case "IMAGE":
-				// response body에 넣은 Image 객체를 받아온다.
-				Image imageData = downloadCapturedImageData(httpConn.getInputStream());
-				System.out.println("ImageData 결과: " + imageData.toString());
-
-				break;
-			case "FILE":
-				String fileOriginName = requestContents.getFileOriginName();
-				System.out.println("fileOriginName 결과: " + fileOriginName);
-
-				/* Clipcon 폴더에 실제 File(파일명: 원본 파일명) 저장 */
-				downloadMultipartData(httpConn.getInputStream(), fileOriginName);
-				break;
-
-			default:
-				System.out.println("어떤 형식에도 속하지 않음.");
-			}
-			System.out.println();
+			// String contentsType = httpConn.getHeaderField("contentsType");
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

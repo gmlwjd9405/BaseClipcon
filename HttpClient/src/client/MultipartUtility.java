@@ -84,7 +84,7 @@ public class MultipartUtility {
 		writer.append(value).append(LINE_FEED);
 		writer.flush();
 	}
-	
+
 	/**
 	 * Adds a upload file section to the request
 	 * 
@@ -125,11 +125,11 @@ public class MultipartUtility {
 	 * @param uploadFile a File to be uploaded
 	 * @throws IOException
 	 */
-	public void addFilePart(String fieldName, File uploadFile) throws IOException {
+	public void addFilePart(String fieldName, File uploadFile, String folderNameContainingFile) throws IOException {
 		String fileName = uploadFile.getName();
-		
+
 		writer.append("--" + boundary).append(LINE_FEED);
-		writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"").append(LINE_FEED);
+		writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + folderNameContainingFile + "\\" + fileName + "\"").append(LINE_FEED);
 		writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(fileName)).append(LINE_FEED);
 		writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
 		writer.append(LINE_FEED);
@@ -149,7 +149,6 @@ public class MultipartUtility {
 		writer.append(LINE_FEED);
 		writer.flush();
 	}
-
 
 	/**
 	 * Completes the request and receives response from the server.

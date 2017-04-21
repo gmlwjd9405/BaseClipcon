@@ -82,7 +82,7 @@ public class DownloadServlet extends HttpServlet {
 		testcontent.setContentsSize(45);
 		testcontent.setContentsType(Contents.TYPE_STRING);
 		testcontent.setContentsValue("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-		testcontent.setUploadTime("2017-4-19 날짜 10:53:06");
+		testcontent.setUploadTime("2017-4-19_10:53:06");
 		testcontent.setUploadUserName("gmlwjd9405@naver.com");
 
 		/* Image의 경우 */
@@ -103,6 +103,7 @@ public class DownloadServlet extends HttpServlet {
 		case "STRING":
 			String stringData = testcontent.getContentsValue();
 
+			response.setCharacterEncoding(charset);
 			response.setHeader("Content-Disposition", "form-data; name=stringData" + "\"" + LINE_FEED);
 			response.setContentType("text/plain; charset=UTF-8");
 
@@ -112,23 +113,25 @@ public class DownloadServlet extends HttpServlet {
 		case "IMAGE":
 			String imageFileName = testcontent.getContentsPKName();
 
+			response.setCharacterEncoding(charset);
 			response.setContentType("image/jpeg");
 			response.setHeader("Content-Disposition", "attachment; filename=\"" + imageFileName + LINE_FEED);
 			response.setHeader("Content-Transfer-Encoding", "binary" + "\"" + LINE_FEED);
 
-			// dir에 있는 image file을 가져와 전송. (ByteArrayStream)
+			// dir에 있는 image file을 가져와 전송.
 			sendFileData(imageFileName, response.getOutputStream());
 
 			break;
 		case "FILE":
 			String fileName = testcontent.getContentsPKName();
 
+			response.setCharacterEncoding(charset);
 			// response.setContentType("multipart/mixed");
 			response.setContentType("application/octet-stream");
 			response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + LINE_FEED);
 			response.setHeader("Content-Transfer-Encoding", "binary" + "\"" + LINE_FEED);
 
-			// dir에 있는 file을 가져와 전송. (FileStream)
+			// dir에 있는 file을 가져와 전송.
 			sendFileData(fileName, response.getOutputStream());
 
 			break;
@@ -143,7 +146,6 @@ public class DownloadServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// doGet(request, response);

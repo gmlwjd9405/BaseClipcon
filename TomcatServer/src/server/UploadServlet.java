@@ -31,14 +31,16 @@ import javax.swing.ImageIcon;
 @WebServlet("/UploadServlet")
 public class UploadServlet extends HttpServlet {
 
-	// 업로드 파일을 저장할 위치
+	// 업로드 File을 저장할 위치
 	private final String RECEIVE_LOCATION = "C:\\Users\\Administrator\\Desktop\\";
-	// 업로드한 파일을 저장할 폴더
+	// 업로드한 File을 저장할 폴더
 	private File receiveFolder;
 
 	private String userEmail = null;
 	private String groupPK = null;
 	private String uploadTime = null;
+	private String ismultipartData = null; // 여러 File을 한번에 업로드한 경우
+	private String folderPKName = null; // 여러 File을 저장할 Folder이름
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -55,11 +57,12 @@ public class UploadServlet extends HttpServlet {
 		userEmail = request.getParameter("userEmail");
 		groupPK = request.getParameter("groupPK");
 		uploadTime = request.getParameter("uploadTime");
-		System.out.println(
-				"<Parameter> userEmail: " + userEmail + ", groupPK: " + groupPK + ", uploadTime: " + uploadTime);
+		ismultipartData = request.getParameter("ismultipartData");
+		System.out.println("<Parameter> userEmail: " + userEmail + ", groupPK: " + groupPK + ", uploadTime: "
+				+ uploadTime + ", ismultipartData: " + ismultipartData);
 		System.out.println();
 
-		// 여러 file들을 가져옴
+		// request body부분의 part를 각각 가져온다.
 		for (Part part : request.getParts()) {
 
 			String partName = part.getName();
@@ -95,23 +98,34 @@ public class UploadServlet extends HttpServlet {
 				saveContentsToHistory(uploadContents);
 
 				break;
+			/* 여러 File들을 가져옴 */
 			case "multipartFileData":
 				uploadContents = new Contents();
 				String fileName = getFilenameInHeader(part.getHeader("content-disposition"));
 				System.out.println("fileName: " + fileName);
 
+				// 여러 File을 한번에 업로드한 경우
+				if (ismultipartData.equals("TRUE") && folderPKName == null) {
+					// 다수의 File을 저장할 폴더 이름 = 첫번째로 저장하는 File의 고유값 이름(알림 또한 하나만
+					// 전송)
+					folderPKName = uploadContents.getContentsPKName();
+					uploadContents.setFolderName(folderPKName);
+				}
+
 				setContentsInfo(uploadContents, part.getSize(), Contents.TYPE_FILE, fileName);
 				saveContentsToHistory(uploadContents);
 
 				/* groupPK 폴더에 실제 File(파일명: 고유키) 저장 */
-				getFileDatStream(part.getInputStream(), groupPK, uploadContents.getContentsPKName());
+				getFileDatStream(part.getInputStream(), groupPK, uploadContents.getContentsPKName(), folderPKName);
 				break;
 			default:
 				System.out.println("어떤 형식에도 속하지 않음.");
 			}
 			System.out.println();
+			System.out.println();
 		}
 
+		folderPKName = null; // 폴더이름 초기화
 		responseMsgLog(response);
 	}
 
@@ -141,7 +155,7 @@ public class UploadServlet extends HttpServlet {
 	public Image getImageDataStream(InputStream stream, String groupPK, String imagefileName) throws IOException {
 		byte[] imageInByte;
 		String saveFilePath = RECEIVE_LOCATION + groupPK; // 사용자가 속한 그룹의 폴더에 저장
-		
+
 		createFileReceiveFolder(saveFilePath); // 그룹 폴더 존재 확인
 
 		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
@@ -174,12 +188,24 @@ public class UploadServlet extends HttpServlet {
 	}
 
 	/** File Data를 수신하는 Stream */
-	public void getFileDatStream(InputStream stream, String groupPK, String fileName) throws IOException {
-		String saveFilePath = RECEIVE_LOCATION + groupPK; // 사용자가 속한 그룹의 폴더에 저장
+	public void getFileDatStream(InputStream stream, String groupPK, String fileName, String folderPKName)
+			throws IOException {
+		String saveFilePath;
+		String saveFileFullPath;
 
-		String saveFileFullPath = saveFilePath + "\\" + fileName;
+		saveFilePath = RECEIVE_LOCATION + groupPK;
+		saveFileFullPath = saveFilePath + "\\" + fileName;
 
-		createFileReceiveFolder(saveFilePath); // 그룹 폴더 존재 확인
+		createFileReceiveFolder(saveFilePath); // (속한 그룹) 폴더 존재 확인
+
+		// 사용자가 속한 그룹의 폴더에 저장
+		if (folderPKName != null) {
+			// 여러 파일을 전송한 경우
+			saveFilePath = saveFilePath + "\\" + folderPKName;
+			saveFileFullPath = saveFilePath + "\\" + fileName;
+
+			createFileReceiveFolder(saveFilePath); // (다수의 File 전송) 폴더 존재 확인
+		}
 
 		// opens an output stream to save into file
 		FileOutputStream fileOutputStream = new FileOutputStream(saveFileFullPath);

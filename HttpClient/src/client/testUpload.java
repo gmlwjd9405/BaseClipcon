@@ -2,12 +2,10 @@ package client;
 
 import java.awt.Image;
 import java.awt.Toolkit;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.swing.ImageIcon;
-
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 
 public class testUpload {
 	public static UploadData uploader = new UploadData("gmlwjd9405@naver.com", "doyyyy");
@@ -40,16 +38,30 @@ public class testUpload {
 
 		// Multiple File
 		case 2:
-			ArrayList<String> fileFullPathList = new ArrayList<String>();
-			fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\hello\\ccccc.txt");
-			fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\taeyeon.mp3");
-			fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\hello\\qwerqer\\bbbb.jpeg");
+			Map<String, String> fileFullPathList = new LinkedHashMap<String, String>();
+//			 fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\data1.zip", null);
+			// fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\data2.txt", null);
+			// fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\folder2\\data3.hwp", null);
+
+			
+			fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\data1.zip", null);
+			
+//			 fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\folder1"); // DIR
+			fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\data2.txt", "folder1"); // Folder가 아닌 데이터의 정보를 먼저
+			
+//			 fileFullPathList.add("C:\\Users\\Administrator\\Desktop\\folder1\\folder2"); // DIR
+
+			fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\folder2\\data1.jpeg", "folder1/folder2");
+			fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\folder2\\data2.jpeg", "folder1/folder2");
+			fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\folder2\\data2.txt", "folder1/folder2");
+			fileFullPathList.put("C:\\Users\\Administrator\\Desktop\\folder1\\folder2\\data3.hwp", "folder1/folder2");
 
 			uploader.uploadMultipartData(fileFullPathList);
 			break;
 
-		// Folder
+		// Include Folder
 		case 3:
+
 			break;
 		default:
 

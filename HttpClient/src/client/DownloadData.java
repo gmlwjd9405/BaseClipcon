@@ -30,21 +30,15 @@ public class DownloadData {
 	public final static String SERVER_URL = "http://localhost:8080/TomcatServer";
 	public final static String SERVER_SERVLET = "/DownloadServlet";
 
-	// private static final int CHUNKSIZE = 4096;
-	// private static final String LINE_FEED = "\r\n";
-	// private final String boundary = "===" + System.currentTimeMillis() + "===";
-	// private OutputStream outputStream;
-	// private PrintWriter writer;
-
 	private final String charset = "UTF-8";
 	private HttpURLConnection httpConn;
 
 	private String userEmail = null;
 	private String groupPK = null;
-	private String downloadDataPK; // 다운로드할 Data의 고유키
-	private Contents requestContents; // 다운로드할 Data 정보
 
-	private History myhistory; // 내가 속한 History
+	private Contents requestContents; // Contents Info to download
+	// private String downloadDataPK; // Contents' Primary Key to download
+	// private History myhistory; // The Group History to which I belong
 
 	/** 생성자 userEmail과 groupPK를 설정한다. */
 	public DownloadData(String userEmail, String groupPK) {
@@ -53,21 +47,22 @@ public class DownloadData {
 	}
 
 	/** 다운로드하기 원하는 Data를 request 
-	 * 복수 선택은 File Data의 경우만 가능(추후 개선) */
+	 * 복수 선택은 File Data의 경우만 가능(추후 개선) 
+	 * @param downloadDataPK 다운로드할 Data의 고유키 
+	 * @param myhistory 내가 속한 그룹의 History 정보 */
 	public void requestDataDownload(String downloadDataPK, History myhistory) throws MalformedURLException {
+		// Create a temporary folder to save the imageFile, file
 		createFileReceiveFolder(DOWNLOAD_LOCATION);
+		// Retrieving Contents from My History
+		requestContents = myhistory.getContentsByPK(downloadDataPK);
 
-		this.downloadDataPK = downloadDataPK;
-		this.myhistory = myhistory;
-		requestContents = myhistory.getContentsByPK(downloadDataPK); // 내가 속한 history에서 고유키에 해당하는 Contents 가져오기
-
-		// GET방식으로 보낼 parameter
-		String getParameters = "userEmail=" + userEmail + "&" + "groupPK=" + groupPK + "&" + "downloadDataPK=" + downloadDataPK;
-		// 다운로드받을 데이터의 Type
+		// Parameter to be sent by the GET method
+		String parameters = "userEmail=" + userEmail + "&" + "groupPK=" + groupPK + "&" + "downloadDataPK=" + downloadDataPK;
+		// Type of data to download
 		String contentsType = requestContents.getContentsType();
 
 		try {
-			URL url = new URL(SERVER_URL + SERVER_SERVLET + "?" + getParameters);
+			URL url = new URL(SERVER_URL + SERVER_SERVLET + "?" + parameters);
 
 			httpConn = (HttpURLConnection) url.openConnection();
 
@@ -81,14 +76,6 @@ public class DownloadData {
 			List<String> response = new ArrayList<String>(); // Server의 응답내용
 
 			if (status == HttpURLConnection.HTTP_OK) {
-				// BufferedReader reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
-				// String line = null;
-				// while ((line = reader.readLine()) != null) {
-				// response.add(line);
-				// }
-				// reader.close();
-				// httpConn.disconnect();
-
 				switch (contentsType) {
 				case "STRING":
 					// response body에 넣은 String 객체를 받아온다.
@@ -104,10 +91,11 @@ public class DownloadData {
 					break;
 				case "FILE":
 					String fileOriginName = requestContents.getFileOriginName();
-					System.out.println("fileOriginName 결과: " + fileOriginName);
 
-					/* Clipcon 폴더에 실제 File(파일명: 원본 파일명) 저장 */
-					downloadMultipartData(httpConn.getInputStream(), fileOriginName);
+					/* Clipcon 폴더에 실제 File(파일명: 원본 파일명) 저장 후 File 객체를 받아온다. */
+					File fileData = downloadMultipartData(httpConn.getInputStream(), fileOriginName);
+					System.out.println("fileOriginName 결과: " + fileData.getName());
+
 					break;
 
 				default:
@@ -118,9 +106,7 @@ public class DownloadData {
 			} else {
 				throw new IOException("Server returned non-OK status: " + status);
 			}
-
-			/* response에서 contentsType 받아와야 함 */
-			// String contentsType = httpConn.getHeaderField("contentsType");
+			httpConn.disconnect();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -156,7 +142,7 @@ public class DownloadData {
 	}
 
 	/** Captured Image Data를 다운로드 
-	 * file 형태의 Image Data를 전송받아 Image로 변경 */
+	 * file 형태의 Image Data를 전송받아 Image 객체로 변경 */
 	private Image downloadCapturedImageData(InputStream inputStream) {
 		byte[] imageInByte = null;
 		BufferedImage bImageFromConvert = null;
@@ -184,11 +170,12 @@ public class DownloadData {
 		return ImageData;
 	}
 
-	/** 여러 File Data를 다운로드 */
-	private void downloadMultipartData(InputStream inputStream, String fileName) throws FileNotFoundException {
+	/** 여러 File Data를 임시폴더에 다운로드 후 File 객체 리턴 */
+	private File downloadMultipartData(InputStream inputStream, String fileName) throws FileNotFoundException {
 		// opens input stream from the HTTP connection
 		// InputStream inputStream = httpConn.getInputStream();
 		String saveFileFullPath = DOWNLOAD_LOCATION + "\\" + fileName;
+		File fileData;
 
 		try {
 			// opens an output stream to save into file
@@ -206,6 +193,9 @@ public class DownloadData {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		fileData = new File(saveFileFullPath);
+		return fileData;
 	}
 
 	/* 프로그램 실행할 때로 옮겨야 함. */
